@@ -13,30 +13,40 @@ package com.stefanmuenchow.mailbutler;
 
 import org.apache.log4j.Logger;
 
+import com.stefanmuenchow.mailbutler.mail.MailConfiguration;
 import com.stefanmuenchow.mailbutler.mail.MailDaemon;
 import com.stefanmuenchow.mailbutler.util.MessagesUtil;
 
 
 public class MailButler {
-	private static final Logger logger		= Logger.getLogger(MailButler.class);
+	private static final Logger logger = Logger.getLogger(MailButler.class);
 
 	public static void main(String[] args) {
-		String configFile = "butler.xml";
+		String configFileName = "butler.xml";
+		MailConfiguration mailConfig = null;
 		
 		try {
-			MailDaemon daemon = MailDaemon.newFromConfig(configFile);
-			Thread daemonThread = new Thread(daemon);
-			daemonThread.start();
-			
-			try {
-				Thread.sleep(300000);
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-			}
-			
-			daemonThread.interrupt();
+			mailConfig = MailConfiguration.newFromXML(configFileName);
 		} catch (Exception e) {
-			logger.error(MessagesUtil.getString("error_fileCannotBeRead", configFile));
+			logger.error(MessagesUtil.getString("error_fileCannotBeRead", configFileName));
 		}
+		
+		MailDaemon mailDaemon = MailDaemon.newFromConfig(mailConfig);
+		final Thread mailDaemonThread = new Thread(mailDaemon);
+		
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				mailDaemonThread.interrupt();
+				
+				try {
+					mailDaemonThread.join();
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+			}
+		});
+		
+		mailDaemonThread.start();
 	}
 }

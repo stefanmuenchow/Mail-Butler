@@ -11,8 +11,6 @@
 
 package com.stefanmuenchow.mailbutler.mail;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.util.Properties;
 
 import javax.mail.Folder;
@@ -26,45 +24,28 @@ import org.apache.log4j.Logger;
 import com.stefanmuenchow.mailbutler.util.MessagesUtil;
 
 public class MailDaemon implements Runnable {
-	private static final Logger logger		= Logger.getLogger(MailDaemon.class);
+	private static final Logger logger = Logger.getLogger(MailDaemon.class);
 	
-	private static final int 	MAX_RETRIES = 3;
-	private static final long	SLEEP_TIME	= 60000;
-	
-	private String 	host;
-	private String 	username;
-	private String 	password;
+	private MailConfiguration config;
 	private Session	session;
 	
-	public static MailDaemon newFromConfig(String fileName) throws Exception {
-		Properties props = new Properties();
-		props.loadFromXML(new FileInputStream(new File(fileName)));
+	private static Properties createProperties(MailConfiguration config) {
+		Properties properties = new Properties();
+		properties.setProperty("host", config.getHost());
+		properties.setProperty("username", config.getUser());
+		properties.setProperty("password", config.getPassword());
 		
-		MailDaemon daemon = new MailDaemon();
-		daemon.setHost(props.getProperty("host"));
-		daemon.setUsername(props.getProperty("username"));
-		daemon.setPassword(props.getProperty("password"));
-		daemon.setSession(Session.getDefaultInstance(props));
-		
+		return properties;
+	}
+	
+	public static MailDaemon newFromConfig(MailConfiguration config) {
+		MailDaemon daemon = new MailDaemon(config);
 		return daemon;
 	}
 	
-	private MailDaemon() { }
-	
-	public void setHost(String host) {
-		this.host = host;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-	
-	private void setSession(Session session) {
-		this.session = session;
+	private MailDaemon(MailConfiguration config) { 
+		this.config = config;
+		this.session = Session.getDefaultInstance(createProperties(config));
 	}
 	
 	private void closeFolderAndStore(Folder folder, Store store) {
@@ -85,15 +66,15 @@ public class MailDaemon implements Runnable {
 		int retries = 0;
 		
 		while( !Thread.currentThread().isInterrupted() 
-				&& retries < MAX_RETRIES) {
+				&& retries < config.getNumFetchRetries()) {
 			Store store = null;
 			Folder folder = null;
 			
 			try {
-				store = session.getStore("pop3");
-				store.connect(host, username, password);
+				store = session.getStore(config.getProtocol());
+				store.connect(config.getHost(), config.getUser(), config.getPassword());
 				
-				folder = store.getFolder("INBOX");
+				folder = store.getFolder(config.getInboxName());
 				folder.open(Folder.READ_WRITE);
 				
 				Message message[] = folder.getMessages();
@@ -102,7 +83,7 @@ public class MailDaemon implements Runnable {
 				}
 				
 				try {
-					Thread.sleep(SLEEP_TIME);
+					Thread.sleep(config.getFetchCycleInMs());
 				} catch(InterruptedException ie) {
 					Thread.currentThread().interrupt();
 				}
