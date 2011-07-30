@@ -2,31 +2,28 @@ package com.stefanmuenchow.mailbutler.mail;
 
 import org.apache.commons.configuration.XMLConfiguration;
 
-public class MailConfiguration {
+public class ButlerConfiguration {
 	private String host;
 	private String user;
 	private String password;
 	private String protocol;
 	private String inboxName;
-	private long   fetchCycleInMs;
-	private int	   numFetchRetries;
+	private long fetchCycleInMs;
+	private int numFetchRetries;
+	private String pluginPath;
 	
-	public static MailConfiguration newFromXML(String fileName) throws Exception {
-	    XMLConfiguration xmlConfig = new XMLConfiguration("butler.xml");
-	    
-	    MailConfiguration mailConfig = new MailConfiguration();
-	    mailConfig.setHost(xmlConfig.getString("mail.host"));
-	    mailConfig.setUser(xmlConfig.getString("mail.user"));
-	    mailConfig.setPassword(xmlConfig.getString("mail.password"));
-	    mailConfig.setProtocol(xmlConfig.getString("mail.protocol"));
-	    mailConfig.setInboxName(xmlConfig.getString("mail.inboxName"));
-	    mailConfig.setFetchCycleInMs(xmlConfig.getLong("mail.fetchCycle") * 1000);
-	    mailConfig.setNumFetchRetries(xmlConfig.getInt("mail.numFetchRetries"));
-	    
-	    return mailConfig;
-	}
+	public ButlerConfiguration(String fileName) throws Exception { 
+		XMLConfiguration xmlConfig = new XMLConfiguration(fileName);
 
-	private MailConfiguration() { }
+		setHost(xmlConfig.getString("mail.host"));
+		setUser(xmlConfig.getString("mail.user"));
+		setPassword(xmlConfig.getString("mail.password"));
+		setProtocol(xmlConfig.getString("mail.protocol"));
+		setInboxName(xmlConfig.getString("mail.inboxName"));
+		setFetchCycleInMs(xmlConfig.getLong("mail.fetchCycle") * 1000);
+		setNumFetchRetries(xmlConfig.getInt("mail.numFetchRetries"));
+		setPluginPath(xmlConfig.getString("plugins.path"));
+	}
 
 	public String getHost() {
 		return host;
@@ -82,5 +79,13 @@ public class MailConfiguration {
 
 	private void setNumFetchRetries(int numFetchRetries) {
 		this.numFetchRetries = numFetchRetries;
+	}
+
+	public String getPluginPath() {
+		return pluginPath;
+	}
+
+	private void setPluginPath(String pluginPath) {
+		this.pluginPath = pluginPath;
 	}
 }

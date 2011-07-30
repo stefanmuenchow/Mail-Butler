@@ -23,4 +23,8 @@
         <!-- Number of retries on failure while fetching mails -->
         <numFetchRetries>5</numFetchRetries>
     </mail>
+    
+    <plugins>
+        <path>plugins</path>
+    </plugins>
 </mailButler>

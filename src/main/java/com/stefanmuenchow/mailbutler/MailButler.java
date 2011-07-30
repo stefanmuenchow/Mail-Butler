@@ -13,8 +13,9 @@ package com.stefanmuenchow.mailbutler;
 
 import org.apache.log4j.Logger;
 
-import com.stefanmuenchow.mailbutler.mail.MailConfiguration;
+import com.stefanmuenchow.mailbutler.mail.ButlerConfiguration;
 import com.stefanmuenchow.mailbutler.mail.MailDaemon;
+import com.stefanmuenchow.mailbutler.plugin.PluginRepository;
 import com.stefanmuenchow.mailbutler.util.MessagesUtil;
 
 
@@ -23,15 +24,16 @@ public class MailButler {
 
 	public static void main(String[] args) {
 		String configFileName = "butler.xml";
-		MailConfiguration mailConfig = null;
+		ButlerConfiguration butlerConfig = null;
 		
 		try {
-			mailConfig = MailConfiguration.newFromXML(configFileName);
+			butlerConfig = new ButlerConfiguration(configFileName);
 		} catch (Exception e) {
 			logger.error(MessagesUtil.getString("error_fileCannotBeRead", configFileName));
 		}
 		
-		MailDaemon mailDaemon = MailDaemon.newFromConfig(mailConfig);
+		PluginRepository pluginRepository = new PluginRepository(butlerConfig.getPluginPath());
+		MailDaemon mailDaemon = new MailDaemon(butlerConfig, pluginRepository);
 		final Thread mailDaemonThread = new Thread(mailDaemon);
 		
 		Runtime.getRuntime().addShutdownHook(new Thread() {

@@ -13,6 +13,7 @@ package com.stefanmuenchow.mailbutler.mail;
 
 import java.util.Properties;
 
+import javax.mail.Flags;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -21,15 +22,25 @@ import javax.mail.Store;
 
 import org.apache.log4j.Logger;
 
+import com.stefanmuenchow.mailbutler.plugin.Plugin;
+import com.stefanmuenchow.mailbutler.plugin.PluginRepository;
+import com.stefanmuenchow.mailbutler.plugin.Task;
 import com.stefanmuenchow.mailbutler.util.MessagesUtil;
 
 public class MailDaemon implements Runnable {
 	private static final Logger logger = Logger.getLogger(MailDaemon.class);
 	
-	private MailConfiguration config;
+	private ButlerConfiguration butlerConfig;
+	private PluginRepository pluginRepository;
 	private Session	session;
 	
-	private static Properties createProperties(MailConfiguration config) {
+	public MailDaemon(ButlerConfiguration config, PluginRepository pluginRepository) { 
+		this.butlerConfig = config;
+		this.pluginRepository = pluginRepository;
+		this.session = Session.getDefaultInstance(createProperties(config));
+	}
+	
+	private static Properties createProperties(ButlerConfiguration config) {
 		Properties properties = new Properties();
 		properties.setProperty("host", config.getHost());
 		properties.setProperty("username", config.getUser());
@@ -38,61 +49,75 @@ public class MailDaemon implements Runnable {
 		return properties;
 	}
 	
-	public static MailDaemon newFromConfig(MailConfiguration config) {
-		MailDaemon daemon = new MailDaemon(config);
-		return daemon;
+	public void run() {
+		int retries = 0;
+		
+		while( !Thread.currentThread().isInterrupted() 
+				&& retries < butlerConfig.getNumFetchRetries()) {
+			Store store = null;
+			Folder folder = null;
+			
+			try {
+				store = session.getStore(butlerConfig.getProtocol());
+				store.connect(butlerConfig.getHost(), butlerConfig.getUser(), butlerConfig.getPassword());
+				
+				folder = store.getFolder(butlerConfig.getInboxName());
+				folder.open(Folder.READ_WRITE);
+				
+				Message messages[] = folder.getMessages();
+				for (Message m : messages) {
+					if(isTaskMessage(m)) {
+						handleTaskMessage(m);
+					}
+				}
+				
+				try {
+					Thread.sleep(butlerConfig.getFetchCycleInMs());
+				} catch(InterruptedException ie) {
+					Thread.currentThread().interrupt();
+				}
+			} catch (Exception e) {
+				retries++;
+				logger.error(MessagesUtil.getString("error_readingMessages"), e);
+			} finally {
+				closeFolderAndStore(folder, store);
+			}
+		}
 	}
-	
-	private MailDaemon(MailConfiguration config) { 
-		this.config = config;
-		this.session = Session.getDefaultInstance(createProperties(config));
+
+	private boolean isTaskMessage(Message m) throws MessagingException {
+		return m.getSubject().startsWith("butler");
+	}
+
+	private void handleTaskMessage(Message m) {
+		Task task = new Task(m);
+		Plugin plugin = pluginRepository.getPluginForTask(task);
+		task = plugin.execute(task);
+		
+		if (task.isDone()) {
+			markMessageToDelete(m);
+		}
+	}
+
+	private void markMessageToDelete(Message message) {
+		try {
+			message.setFlag(Flags.Flag.DELETED, true);
+		} catch (MessagingException e) {
+			logger.error(MessagesUtil.getString("error_deletingMessage"), e);
+		}
 	}
 	
 	private void closeFolderAndStore(Folder folder, Store store) {
 		try {
 			folder.close(true);
 		} catch (MessagingException e) {
-			logger.error(MessagesUtil.getString("error_closeFolder"));
+			logger.error(MessagesUtil.getString("error_closeFolder"), e);
 		}
 		
 		try {
 			store.close();
 		} catch (MessagingException e) {
-			logger.error(MessagesUtil.getString("error_closeStore"));
-		}
-	}
-
-	public void run() {
-		int retries = 0;
-		
-		while( !Thread.currentThread().isInterrupted() 
-				&& retries < config.getNumFetchRetries()) {
-			Store store = null;
-			Folder folder = null;
-			
-			try {
-				store = session.getStore(config.getProtocol());
-				store.connect(config.getHost(), config.getUser(), config.getPassword());
-				
-				folder = store.getFolder(config.getInboxName());
-				folder.open(Folder.READ_WRITE);
-				
-				Message message[] = folder.getMessages();
-				for (int i=0, n=message.length; i<n; i++) {
-					System.out.println(i + ": " + message[i].getFrom()[0] + "\t" + message[i].getSubject());
-				}
-				
-				try {
-					Thread.sleep(config.getFetchCycleInMs());
-				} catch(InterruptedException ie) {
-					Thread.currentThread().interrupt();
-				}
-			} catch (Exception e) {
-				retries++;
-				logger.error(MessagesUtil.getString("error_readingMessages") + ":" + e.getMessage());
-			} finally {
-				closeFolderAndStore(folder, store);
-			}
+			logger.error(MessagesUtil.getString("error_closeStore"), e);
 		}
 	}
 }
