@@ -6,10 +6,10 @@
         <host>pop3.someserver.com</host>
         
         <!-- Username for mail server -->
-        <user>aUser</user>
+        <user>someUser</user>
         
         <!-- Password for mail server -->
-        <password>aPassword</password>
+        <password>somePw</password>
         
         <!-- Protocol name ("pop3" or "imap") -->
         <protocol>pop3</protocol>
@@ -26,5 +26,6 @@
     
     <plugins>
         <path>plugins</path>
+        <scanCycle>300</scanCycle>
     </plugins>
 </mailButler>

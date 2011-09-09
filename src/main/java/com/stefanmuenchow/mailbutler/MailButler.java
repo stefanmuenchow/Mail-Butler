@@ -11,37 +11,42 @@
 
 package com.stefanmuenchow.mailbutler;
 
-import org.apache.log4j.Logger;
-
-import com.stefanmuenchow.mailbutler.mail.ButlerConfiguration;
+import com.stefanmuenchow.mailbutler.exception.DaemonException;
+import com.stefanmuenchow.mailbutler.mail.DaemonConfiguration;
 import com.stefanmuenchow.mailbutler.mail.MailDaemon;
 import com.stefanmuenchow.mailbutler.plugin.PluginRepository;
-import com.stefanmuenchow.mailbutler.util.MessagesUtil;
+import com.stefanmuenchow.mailbutler.plugin.PluginScanner;
+import com.stefanmuenchow.mailbutler.util.LogUtil;
 
 
 public class MailButler {
-	private static final Logger logger = Logger.getLogger(MailButler.class);
-
 	public static void main(String[] args) {
 		String configFileName = "butler.xml";
-		ButlerConfiguration butlerConfig = null;
 		
 		try {
-			butlerConfig = new ButlerConfiguration(configFileName);
-		} catch (Exception e) {
-			logger.error(MessagesUtil.getString("error_fileCannotBeRead", configFileName));
+			configureAndStartMailDaemon(configFileName);
+		} catch (DaemonException e) {
+			LogUtil.logException(e);
 		}
-		
+	}
+
+	private static void configureAndStartMailDaemon(String configFileName) {
+		DaemonConfiguration butlerConfig = new DaemonConfiguration(configFileName);
 		PluginRepository pluginRepository = new PluginRepository(butlerConfig.getPluginPath());
+		PluginScanner pluginScanner = new PluginScanner(pluginRepository, butlerConfig);
 		MailDaemon mailDaemon = new MailDaemon(butlerConfig, pluginRepository);
+		
+		final Thread pluginScannerThread = new Thread(pluginScanner);
 		final Thread mailDaemonThread = new Thread(mailDaemon);
 		
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
+				pluginScannerThread.interrupt();
 				mailDaemonThread.interrupt();
 				
 				try {
+					pluginScannerThread.join();
 					mailDaemonThread.join();
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
@@ -49,6 +54,7 @@ public class MailButler {
 			}
 		});
 		
+		pluginScannerThread.start();
 		mailDaemonThread.start();
 	}
 }

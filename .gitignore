@@ -3,3 +3,5 @@
 .settings
 target
 butler.xml_bak
+butler.xml.bak
+plugins/helloWorldPlugin.xml.bak

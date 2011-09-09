@@ -1,5 +1,7 @@
 package com.stefanmuenchow.mailbutler.plugin;
 
+import com.stefanmuenchow.mailbutler.mail.TaskMessage;
+
 public interface Plugin {
-	Task execute(Task task);
+	void process(TaskMessage task);
 }

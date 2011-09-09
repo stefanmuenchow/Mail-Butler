@@ -11,113 +11,120 @@
 
 package com.stefanmuenchow.mailbutler.mail;
 
-import java.util.Properties;
-
-import javax.mail.Flags;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.NoSuchProviderException;
 import javax.mail.Session;
 import javax.mail.Store;
 
-import org.apache.log4j.Logger;
-
+import com.stefanmuenchow.mailbutler.exception.DaemonException;
+import com.stefanmuenchow.mailbutler.exception.DaemonException.ErrorCode;
 import com.stefanmuenchow.mailbutler.plugin.Plugin;
 import com.stefanmuenchow.mailbutler.plugin.PluginRepository;
-import com.stefanmuenchow.mailbutler.plugin.Task;
-import com.stefanmuenchow.mailbutler.util.MessagesUtil;
+import com.stefanmuenchow.mailbutler.util.LogUtil;
 
 public class MailDaemon implements Runnable {
-	private static final Logger logger = Logger.getLogger(MailDaemon.class);
-	
-	private ButlerConfiguration butlerConfig;
+	private DaemonConfiguration butlerConfig;
 	private PluginRepository pluginRepository;
 	private Session	session;
+	private Store store = null;
+	private Folder folder = null;
 	
-	public MailDaemon(ButlerConfiguration config, PluginRepository pluginRepository) { 
+	public MailDaemon(DaemonConfiguration config, PluginRepository pluginRepository) { 
 		this.butlerConfig = config;
 		this.pluginRepository = pluginRepository;
-		this.session = Session.getDefaultInstance(createProperties(config));
-	}
-	
-	private static Properties createProperties(ButlerConfiguration config) {
-		Properties properties = new Properties();
-		properties.setProperty("host", config.getHost());
-		properties.setProperty("username", config.getUser());
-		properties.setProperty("password", config.getPassword());
-		
-		return properties;
+		this.session = Session.getDefaultInstance(config.getMailSessionProperties());
 	}
 	
 	public void run() {
-		int retries = 0;
-		
-		while( !Thread.currentThread().isInterrupted() 
-				&& retries < butlerConfig.getNumFetchRetries()) {
-			Store store = null;
-			Folder folder = null;
-			
+		while(isRunning()) {
 			try {
-				store = session.getStore(butlerConfig.getProtocol());
-				store.connect(butlerConfig.getHost(), butlerConfig.getUser(), butlerConfig.getPassword());
-				
-				folder = store.getFolder(butlerConfig.getInboxName());
-				folder.open(Folder.READ_WRITE);
-				
-				Message messages[] = folder.getMessages();
-				for (Message m : messages) {
-					if(isTaskMessage(m)) {
-						handleTaskMessage(m);
-					}
-				}
-				
-				try {
-					Thread.sleep(butlerConfig.getFetchCycleInMs());
-				} catch(InterruptedException ie) {
-					Thread.currentThread().interrupt();
-				}
-			} catch (Exception e) {
-				retries++;
-				logger.error(MessagesUtil.getString("error_readingMessages"), e);
+				fetchAndProcessMails();
+			} catch (DaemonException e) {
+				LogUtil.logException(e);
 			} finally {
-				closeFolderAndStore(folder, store);
+				tryCloseFolderAndStore();
 			}
-		}
-	}
-
-	private boolean isTaskMessage(Message m) throws MessagingException {
-		return m.getSubject().startsWith("butler");
-	}
-
-	private void handleTaskMessage(Message m) {
-		Task task = new Task(m);
-		Plugin plugin = pluginRepository.getPluginForTask(task);
-		task = plugin.execute(task);
-		
-		if (task.isDone()) {
-			markMessageToDelete(m);
-		}
-	}
-
-	private void markMessageToDelete(Message message) {
-		try {
-			message.setFlag(Flags.Flag.DELETED, true);
-		} catch (MessagingException e) {
-			logger.error(MessagesUtil.getString("error_deletingMessage"), e);
+			
+			sleep();
 		}
 	}
 	
-	private void closeFolderAndStore(Folder folder, Store store) {
+	private boolean isRunning() {
+		return !Thread.currentThread().isInterrupted();
+	}
+
+	private void fetchAndProcessMails() {
+		connectToStore();
+		openInboxFolder();
+		processMessages();
+	}
+
+	private void connectToStore() {
+		try {
+			store = session.getStore(butlerConfig.getProtocol());
+			store.connect(butlerConfig.getHost(), butlerConfig.getUser(), butlerConfig.getPassword());
+		} catch (NoSuchProviderException e) {
+			throw new DaemonException(ErrorCode.CONNECTION_FAILURE,
+					butlerConfig.getProtocol() + ", " + butlerConfig.getHost());
+		} catch (MessagingException e) {
+			throw new DaemonException(ErrorCode.CONNECTION_FAILURE,
+					butlerConfig.getProtocol() + ", " + butlerConfig.getHost()
+							+ ", " + butlerConfig.getUser());
+		}
+	}
+	
+	private void openInboxFolder() {
+		try {
+			folder = store.getFolder(butlerConfig.getInboxName());
+			folder.open(Folder.READ_WRITE);
+		} catch (MessagingException e) {
+			throw new DaemonException(ErrorCode.CONNECTION_FAILURE, butlerConfig.getInboxName());
+		}
+	}
+	
+	private void processMessages() {
+		try {
+			Message messages[] = folder.getMessages();
+			for (Message m : messages) {
+				handleMessage(m);
+			}
+		} catch (MessagingException e) {
+			throw new DaemonException(ErrorCode.MESSAGE_READ_FAILURE);
+		}
+	}
+	
+	private void handleMessage(Message m) {
+		try {
+			if(m.getSubject().startsWith("butler")) {
+				handleTaskMessage(new TaskMessage(m));
+			}
+		} catch (MessagingException e) {
+			throw new DaemonException(ErrorCode.MESSAGE_READ_FAILURE);
+		}
+	}
+
+	private void handleTaskMessage(TaskMessage taskMessage) {
+		Plugin plugin = pluginRepository.getPlugin(taskMessage.getType());
+		plugin.process(taskMessage);
+	}
+
+	private void sleep() {
+		try {
+			Thread.sleep(butlerConfig.getFetchCycleInMs());
+		} catch(InterruptedException ie) {
+			Thread.currentThread().interrupt();
+		}
+	}
+	
+	private void tryCloseFolderAndStore() {
 		try {
 			folder.close(true);
-		} catch (MessagingException e) {
-			logger.error(MessagesUtil.getString("error_closeFolder"), e);
-		}
-		
-		try {
 			store.close();
 		} catch (MessagingException e) {
-			logger.error(MessagesUtil.getString("error_closeStore"), e);
+			DaemonException de = new DaemonException(ErrorCode.CLOSE_FAILURE, e.getMessage());
+			LogUtil.logException(de);
 		}
 	}
 }

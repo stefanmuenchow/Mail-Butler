@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+
+<mailButlerPlugin>
+   <name>Hello World Plugin</name>
+   <jarFile>helloWorldPlugin.jar</jarFile>
+   <class>com.stefanmuenchow.mailbutler.HelloWorldPlugin</class>
+   
+   <security>
+      <allowedUsers>someone@gmail.com</allowedUsers>
+   </security>
+   
+   <customConfig>
+      <message>Hallo Welt!</message> 
+   </customConfig>
+</mailButlerPlugin>
