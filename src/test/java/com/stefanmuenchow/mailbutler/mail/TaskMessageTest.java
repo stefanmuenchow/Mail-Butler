@@ -15,6 +15,7 @@ import org.junit.Test;
 
 public class TaskMessageTest {
 	private Message mockMessage;
+	private TaskMessage taskMessage;
 	
 	@Before
 	public void setUp() throws Exception {
@@ -22,34 +23,28 @@ public class TaskMessageTest {
 		EasyMock.expect(mockMessage.getFrom()).andReturn(new Address[] { new InternetAddress("someone@foo.com") });
 		EasyMock.expect(mockMessage.getSubject()).andReturn("butler action");
 		EasyMock.expect(mockMessage.getContentType()).andReturn("text/plain");
-		EasyMock.expect(mockMessage.getContent()).andReturn("key1      : val1\r\n key2 =    	val2\n--------blaaaa--------");
+		EasyMock.expect(mockMessage.getContent()).andReturn(
+				"key1      : val1\r\n key2 =    	val2\n--------blaaaa--------");
 		mockMessage.setFlag(Flag.DELETED, true);
 		EasyMock.expectLastCall();
 		EasyMock.replay(mockMessage);
+		
+		taskMessage = new TaskMessage(mockMessage);
 	}
 	
-	private TaskMessage newTaskMessage() {
-		return new TaskMessage(mockMessage);
-	}
-
-	@Test
-	public void testTaskMessage() {
-		newTaskMessage();
-	}
-
 	@Test
 	public void testGetType() {
-		assertEquals("action", newTaskMessage().getType());
+		assertEquals("action", taskMessage.getType());
 	}
 
 	@Test
 	public void testGetFromAddress() {
-		assertEquals("someone@foo.com", newTaskMessage().getFromAddress());
+		assertEquals("someone@foo.com", taskMessage.getFromAddress());
 	}
 
 	@Test
 	public void testSetFromAddress() {
-		TaskMessage tm = newTaskMessage();
+		TaskMessage tm = taskMessage;
 		tm.setFromAddress("someoneelse@foo.com");
 		assertEquals("someoneelse@foo.com", tm.getFromAddress());
 		
@@ -61,17 +56,17 @@ public class TaskMessageTest {
 		expected.setProperty("key1", "val1");
 		expected.setProperty("key2", "val2");
 		
-		assertEquals(expected, newTaskMessage().getContent());
+		assertEquals(expected, taskMessage.getContent());
 	}
 
 	@Test
 	public void testIsProcessed() {
-		assertEquals(false, newTaskMessage().isProcessed());
+		assertEquals(false, taskMessage.isProcessed());
 	}
 
 	@Test
 	public void testSetProcessed() {
-		TaskMessage tm = newTaskMessage();
+		TaskMessage tm = taskMessage;
 		tm.setProcessed(true);
 		
 		assertEquals(true, tm.isProcessed());
