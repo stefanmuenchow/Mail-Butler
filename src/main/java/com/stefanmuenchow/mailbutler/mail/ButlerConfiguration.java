@@ -5,10 +5,10 @@ import java.util.Properties;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
 
-import com.stefanmuenchow.mailbutler.exception.DaemonException;
-import com.stefanmuenchow.mailbutler.exception.DaemonException.ErrorCode;
+import com.stefanmuenchow.mailbutler.exception.ButlerException;
+import com.stefanmuenchow.mailbutler.exception.ButlerException.ErrorCode;
 
-public class DaemonConfiguration {
+public class ButlerConfiguration {
 	private String host;
 	private String user;
 	private String password;
@@ -19,7 +19,7 @@ public class DaemonConfiguration {
 	private String pluginPath;
 	private long pluginScanCycleInMs;
 	
-	public DaemonConfiguration(String fileName) { 
+	public ButlerConfiguration(String fileName) { 
 		XMLConfiguration xmlConfig;
 		
 		try {
@@ -35,7 +35,7 @@ public class DaemonConfiguration {
 			setPluginPath(xmlConfig.getString("plugins.path"));
 			setPluginScanCycleInMs(xmlConfig.getLong("plugins.scanCycle") * 1000);
 		} catch (ConfigurationException e) {
-			throw new DaemonException(ErrorCode.CONFIG_READ_FAILURE, fileName);
+			throw new ButlerException(ErrorCode.CONFIG_READ_FAILURE, fileName);
 		}
 	}
 

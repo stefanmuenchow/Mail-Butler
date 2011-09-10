@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+
+<mailButler>
+    <mail>
+        <!-- Hostname of mail server -->    
+        <host>pop3.test.com</host>
+        
+        <!-- Username for mail server -->
+        <user>testUser</user>
+        
+        <!-- Password for mail server -->
+        <password>testPassword</password>
+        
+        <!-- Protocol name ("pop3" or "imap") -->
+        <protocol>pop3</protocol>
+        
+        <!-- Name of the inbox folder (usually "INBOX") -->
+        <inboxName>INBOX</inboxName>
+        
+        <!-- Cycle time for fetching of mails -->
+        <fetchCycle>60</fetchCycle>
+        
+        <!-- Number of retries on failure while fetching mails -->
+        <numFetchRetries>5</numFetchRetries>
+    </mail>
+    
+    <plugins>
+        <path>plugins</path>
+        <scanCycle>300</scanCycle>
+    </plugins>
+</mailButler>

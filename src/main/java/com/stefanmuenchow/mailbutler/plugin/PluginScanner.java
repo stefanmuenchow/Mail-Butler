@@ -5,15 +5,15 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.stefanmuenchow.mailbutler.exception.DaemonException;
-import com.stefanmuenchow.mailbutler.mail.DaemonConfiguration;
+import com.stefanmuenchow.mailbutler.exception.ButlerException;
+import com.stefanmuenchow.mailbutler.mail.ButlerConfiguration;
 import com.stefanmuenchow.mailbutler.util.LogUtil;
 
 public class PluginScanner implements Runnable {
 	private PluginRepository pluginRepo;
-	private DaemonConfiguration daemonConfig;
+	private ButlerConfiguration daemonConfig;
 
-	public PluginScanner(PluginRepository pluginRepo, DaemonConfiguration daemonConfig) {
+	public PluginScanner(PluginRepository pluginRepo, ButlerConfiguration daemonConfig) {
 		this.pluginRepo = pluginRepo;
 		this.daemonConfig = daemonConfig;
 	}
@@ -22,9 +22,9 @@ public class PluginScanner implements Runnable {
 	public void run() {
 		while(!Thread.currentThread().isInterrupted()) {
 			try {
-				scan();
+				scanForConfigs();
 				sleep();
-			} catch(DaemonException e) {
+			} catch(ButlerException e) {
 				LogUtil.logException(e);
 			}
 		}
@@ -38,11 +38,16 @@ public class PluginScanner implements Runnable {
 		}
 	}
 
-	private void scan() {
+	private void scanForConfigs() {
 		File pluginPath = new File(daemonConfig.getPluginPath());
 		List<File> configFiles = findConfigFiles(pluginPath);
 		List<PluginConfiguration> pluginConfigs = createPluginConfigs(configFiles);
-		pluginRepo.updatePlugins(pluginConfigs);
+		try {
+			pluginRepo.loadPlugins(pluginConfigs);
+		} catch(Exception e) {
+			//TODO handle err
+		}
+		
 	}
 
 	private List<File> findConfigFiles(File pluginDir) {

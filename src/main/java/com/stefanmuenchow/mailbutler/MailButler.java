@@ -11,8 +11,8 @@
 
 package com.stefanmuenchow.mailbutler;
 
-import com.stefanmuenchow.mailbutler.exception.DaemonException;
-import com.stefanmuenchow.mailbutler.mail.DaemonConfiguration;
+import com.stefanmuenchow.mailbutler.exception.ButlerException;
+import com.stefanmuenchow.mailbutler.mail.ButlerConfiguration;
 import com.stefanmuenchow.mailbutler.mail.MailDaemon;
 import com.stefanmuenchow.mailbutler.plugin.PluginRepository;
 import com.stefanmuenchow.mailbutler.plugin.PluginScanner;
@@ -25,14 +25,14 @@ public class MailButler {
 		
 		try {
 			configureAndStartMailDaemon(configFileName);
-		} catch (DaemonException e) {
+		} catch (ButlerException e) {
 			LogUtil.logException(e);
 		}
 	}
 
 	private static void configureAndStartMailDaemon(String configFileName) {
-		DaemonConfiguration butlerConfig = new DaemonConfiguration(configFileName);
-		PluginRepository pluginRepository = new PluginRepository(butlerConfig.getPluginPath());
+		ButlerConfiguration butlerConfig = new ButlerConfiguration(configFileName);
+		PluginRepository pluginRepository = new PluginRepository();
 		PluginScanner pluginScanner = new PluginScanner(pluginRepository, butlerConfig);
 		MailDaemon mailDaemon = new MailDaemon(butlerConfig, pluginRepository);
 		

@@ -7,8 +7,8 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
 
-import com.stefanmuenchow.mailbutler.exception.DaemonException;
-import com.stefanmuenchow.mailbutler.exception.DaemonException.ErrorCode;
+import com.stefanmuenchow.mailbutler.exception.ButlerException;
+import com.stefanmuenchow.mailbutler.exception.ButlerException.ErrorCode;
 
 public class PluginConfiguration {
 	private String pluginName;
@@ -18,7 +18,7 @@ public class PluginConfiguration {
 	private Configuration customConfig;
 
 	@SuppressWarnings("unchecked")
-	public PluginConfiguration(File file) { 
+	public PluginConfiguration(File file) {
 		XMLConfiguration xmlConfig;
 		
 		try {
@@ -30,7 +30,7 @@ public class PluginConfiguration {
 			setAllowedUsers((List<String>) xmlConfig.getList("security.allowedUsers"));
 			setCustomConfig(xmlConfig.configurationAt("customConfig"));
 		} catch (ConfigurationException e) {
-			throw new DaemonException(ErrorCode.CONFIG_READ_FAILURE, fileName);
+			throw new ButlerException(ErrorCode.CONFIG_READ_FAILURE, file.getName());
 		}
 	}
 

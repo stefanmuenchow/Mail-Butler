@@ -18,20 +18,20 @@ import javax.mail.NoSuchProviderException;
 import javax.mail.Session;
 import javax.mail.Store;
 
-import com.stefanmuenchow.mailbutler.exception.DaemonException;
-import com.stefanmuenchow.mailbutler.exception.DaemonException.ErrorCode;
+import com.stefanmuenchow.mailbutler.exception.ButlerException;
+import com.stefanmuenchow.mailbutler.exception.ButlerException.ErrorCode;
 import com.stefanmuenchow.mailbutler.plugin.Plugin;
 import com.stefanmuenchow.mailbutler.plugin.PluginRepository;
 import com.stefanmuenchow.mailbutler.util.LogUtil;
 
 public class MailDaemon implements Runnable {
-	private DaemonConfiguration butlerConfig;
+	private ButlerConfiguration butlerConfig;
 	private PluginRepository pluginRepository;
 	private Session	session;
 	private Store store = null;
 	private Folder folder = null;
 	
-	public MailDaemon(DaemonConfiguration config, PluginRepository pluginRepository) { 
+	public MailDaemon(ButlerConfiguration config, PluginRepository pluginRepository) { 
 		this.butlerConfig = config;
 		this.pluginRepository = pluginRepository;
 		this.session = Session.getDefaultInstance(config.getMailSessionProperties());
@@ -41,7 +41,7 @@ public class MailDaemon implements Runnable {
 		while(isRunning()) {
 			try {
 				fetchAndProcessMails();
-			} catch (DaemonException e) {
+			} catch (ButlerException e) {
 				LogUtil.logException(e);
 			} finally {
 				tryCloseFolderAndStore();
@@ -66,10 +66,10 @@ public class MailDaemon implements Runnable {
 			store = session.getStore(butlerConfig.getProtocol());
 			store.connect(butlerConfig.getHost(), butlerConfig.getUser(), butlerConfig.getPassword());
 		} catch (NoSuchProviderException e) {
-			throw new DaemonException(ErrorCode.CONNECTION_FAILURE,
+			throw new ButlerException(ErrorCode.CONNECTION_FAILURE,
 					butlerConfig.getProtocol() + ", " + butlerConfig.getHost());
 		} catch (MessagingException e) {
-			throw new DaemonException(ErrorCode.CONNECTION_FAILURE,
+			throw new ButlerException(ErrorCode.CONNECTION_FAILURE,
 					butlerConfig.getProtocol() + ", " + butlerConfig.getHost()
 							+ ", " + butlerConfig.getUser());
 		}
@@ -80,7 +80,7 @@ public class MailDaemon implements Runnable {
 			folder = store.getFolder(butlerConfig.getInboxName());
 			folder.open(Folder.READ_WRITE);
 		} catch (MessagingException e) {
-			throw new DaemonException(ErrorCode.CONNECTION_FAILURE, butlerConfig.getInboxName());
+			throw new ButlerException(ErrorCode.CONNECTION_FAILURE, butlerConfig.getInboxName());
 		}
 	}
 	
@@ -91,7 +91,7 @@ public class MailDaemon implements Runnable {
 				handleMessage(m);
 			}
 		} catch (MessagingException e) {
-			throw new DaemonException(ErrorCode.MESSAGE_READ_FAILURE);
+			throw new ButlerException(ErrorCode.MESSAGE_READ_FAILURE);
 		}
 	}
 	
@@ -101,12 +101,12 @@ public class MailDaemon implements Runnable {
 				handleTaskMessage(new TaskMessage(m));
 			}
 		} catch (MessagingException e) {
-			throw new DaemonException(ErrorCode.MESSAGE_READ_FAILURE);
+			throw new ButlerException(ErrorCode.MESSAGE_READ_FAILURE);
 		}
 	}
 
 	private void handleTaskMessage(TaskMessage taskMessage) {
-		Plugin plugin = pluginRepository.getPlugin(taskMessage.getType());
+		Plugin plugin = pluginRepository.getPlugin(taskMessage);
 		plugin.process(taskMessage);
 	}
 
@@ -123,7 +123,7 @@ public class MailDaemon implements Runnable {
 			folder.close(true);
 			store.close();
 		} catch (MessagingException e) {
-			DaemonException de = new DaemonException(ErrorCode.CLOSE_FAILURE, e.getMessage());
+			ButlerException de = new ButlerException(ErrorCode.CLOSE_FAILURE, e.getMessage());
 			LogUtil.logException(de);
 		}
 	}

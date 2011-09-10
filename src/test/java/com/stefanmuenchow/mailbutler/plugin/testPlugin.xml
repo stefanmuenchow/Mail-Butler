@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+
+<mailButlerPlugin>
+   <name>TestPlugin</name>
+   <jarFile>testPlugin.jar</jarFile>
+   <class>com.stefanmuenchow.mailbutler.TestPlugin</class>
+   
+   <security>
+      <allowedUsers>someone@foo.com, someoneelse@foo.com</allowedUsers>
+   </security>
+   
+   <customConfig>
+      <attr1>test</attr1> 
+   </customConfig>
+</mailButlerPlugin>

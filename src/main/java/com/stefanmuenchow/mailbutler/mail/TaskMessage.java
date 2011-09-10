@@ -4,27 +4,40 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.mail.Address;
 import javax.mail.Flags;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 
-import com.stefanmuenchow.mailbutler.exception.DaemonException;
-import com.stefanmuenchow.mailbutler.exception.DaemonException.ErrorCode;
+import com.stefanmuenchow.mailbutler.exception.ButlerException;
+import com.stefanmuenchow.mailbutler.exception.ButlerException.ErrorCode;
 
 public class TaskMessage {
 	private Message message;
 	private String type;
+	private String fromAddress;
 	private Properties content; 
 	private boolean processed = false;
 	
 	public TaskMessage(Message m) {
 		try {
-			message = m;
+			setMessage(m);
+			extractFromAdress(m);
 			extractTypeAndContent(m);
 		} catch (MessagingException e) {
-			throw new DaemonException(ErrorCode.MESSAGE_READ_FAILURE);
+			throw new ButlerException(ErrorCode.MESSAGE_READ_FAILURE);
 		}
 		
+	}
+
+	private void extractFromAdress(Message m) {
+		try {
+			Address[] from = m.getFrom();
+			String fromStr = from[0].toString();
+			setFromAddress(fromStr);
+		} catch (MessagingException e) {
+			throw new ButlerException(ErrorCode.GET_SENDER_FAILURE);
+		}
 	}
 
 	private void extractTypeAndContent(Message m) throws MessagingException {
@@ -36,7 +49,7 @@ public class TaskMessage {
 		String[] parts = subject.split(" ");
 		
 		if( parts.length != 2 ) {
-			throw new DaemonException(ErrorCode.INVALID_SUBJECT);
+			throw new ButlerException(ErrorCode.INVALID_SUBJECT);
 		}
 		
 		return parts[1];
@@ -48,7 +61,7 @@ public class TaskMessage {
 		try {
 			content = (String) message.getContent();
 		} catch(Exception e) {
-			throw new DaemonException(ErrorCode.INVALID_CONTENT);
+			throw new ButlerException(ErrorCode.INVALID_CONTENT);
 		}
 		
 		return parseProperties(content);
@@ -63,17 +76,33 @@ public class TaskMessage {
 			String[] keyVal = matcher.group().split("[:=]");
 			
 			if(keyVal.length == 2) {
-				properties.setProperty(keyVal[0], keyVal[1]);
+				properties.setProperty(keyVal[0].trim(), keyVal[1].trim());
 			} else {
-				throw new DaemonException(ErrorCode.INVALID_CONTENT);
+				throw new ButlerException(ErrorCode.INVALID_CONTENT);
 			}
 		}
 		
 		return properties;
 	}
 	
+	private Message getMessage() {
+		return message;
+	}
+
+	private void setMessage(Message message) {
+		this.message = message;
+	}
+
 	public String getType() {
 		return type;
+	}
+
+	public String getFromAddress() {
+		return fromAddress;
+	}
+
+	public void setFromAddress(String fromAddress) {
+		this.fromAddress = fromAddress;
 	}
 
 	public Properties getContent() {
@@ -94,9 +123,9 @@ public class TaskMessage {
 	
 	private void markToDelete() {
 		try {
-			message.setFlag(Flags.Flag.DELETED, true);
+			getMessage().setFlag(Flags.Flag.DELETED, true);
 		} catch (MessagingException e) {
-			throw new DaemonException(ErrorCode.MESSAGE_DELETION_FAILURE);
+			throw new ButlerException(ErrorCode.MESSAGE_DELETION_FAILURE);
 		}
 	}
 }

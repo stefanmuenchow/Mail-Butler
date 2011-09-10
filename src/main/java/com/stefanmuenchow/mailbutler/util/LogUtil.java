@@ -1,14 +1,22 @@
 package com.stefanmuenchow.mailbutler.util;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import com.stefanmuenchow.mailbutler.exception.DaemonException;
+import com.stefanmuenchow.mailbutler.exception.ButlerException;
 
 public class LogUtil {
-	private static final Logger log = Logger.getLogger(LogUtil.class);
+	private static Logger logger = Logger.getLogger(LogUtil.class);
 
-	public static void logException(DaemonException e) {
-		log.error(e.errorMessage());
-		log.debug(e);
+	public static void setLogger(Logger logger) {
+		LogUtil.logger = logger;
+	}
+	
+	public static void logException(ButlerException e) {
+		if (logger.getEffectiveLevel() == Level.DEBUG) {
+			logger.error(e.getErrorMessage(), e);
+		} else {
+			logger.error(e.getErrorMessage());
+		}
 	}
 }
