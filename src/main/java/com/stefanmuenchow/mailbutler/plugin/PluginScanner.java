@@ -5,9 +5,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.stefanmuenchow.mailbutler.exception.ButlerException;
 import com.stefanmuenchow.mailbutler.mail.ButlerConfiguration;
-import com.stefanmuenchow.mailbutler.util.LogUtil;
 
 public class PluginScanner implements Runnable {
 	private PluginRepository pluginRepo;
@@ -20,14 +18,14 @@ public class PluginScanner implements Runnable {
 
 	@Override
 	public void run() {
-		while(!Thread.currentThread().isInterrupted()) {
-			try {
-				scanForConfigs();
-				sleep();
-			} catch(ButlerException e) {
-				LogUtil.logException(e);
-			}
+		while(isRunning()) {
+			findAndLoadConfigs();
+			sleep();
 		}
+	}
+
+	private boolean isRunning() {
+		return !Thread.currentThread().isInterrupted();
 	}
 
 	private void sleep() {
@@ -38,16 +36,11 @@ public class PluginScanner implements Runnable {
 		}
 	}
 
-	private void scanForConfigs() {
+	private void findAndLoadConfigs() {
 		File pluginPath = new File(daemonConfig.getPluginPath());
 		List<File> configFiles = findConfigFiles(pluginPath);
 		List<PluginConfiguration> pluginConfigs = createPluginConfigs(configFiles);
-		try {
-			pluginRepo.loadPlugins(pluginConfigs);
-		} catch(Exception e) {
-			//TODO handle err
-		}
-		
+		pluginRepo.loadPlugins(pluginConfigs);
 	}
 
 	private List<File> findConfigFiles(File pluginDir) {

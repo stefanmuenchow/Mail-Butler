@@ -1,44 +1,46 @@
 package com.stefanmuenchow.mailbutler.plugin;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-import org.junit.Before;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.junit.Test;
 
 public class PluginConfigurationTest {
-
-	@Before
-	public void setUp() throws Exception {
+	private String testConfigPath = "src/test/java/com/stefanmuenchow/mailbutler/plugin/testPlugin.xml";
+	PluginConfiguration testConfig;
+	
+	public PluginConfigurationTest() {
+		testConfig = new PluginConfiguration(testConfigPath);
 	}
-
-	@Test
-	public void testPluginConfiguration() {
-		fail("Not yet implemented");
-	}
-
+	
 	@Test
 	public void testGetPluginName() {
-		fail("Not yet implemented");
+		assertEquals("TestPlugin", testConfig.getPluginName());
 	}
 
 	@Test
 	public void testGetJarFileName() {
-		fail("Not yet implemented");
+		assertEquals("testPlugin.jar", testConfig.getJarFileName());
 	}
 
 	@Test
 	public void testGetClassName() {
-		fail("Not yet implemented");
+		assertEquals("com.stefanmuenchow.mailbutler.TestPlugin", testConfig.getClassName());
 	}
 
 	@Test
 	public void testGetAllowedUsers() {
-		fail("Not yet implemented");
+		List<String> expected = new LinkedList<String>();
+		expected.add("someone@foo.com");
+		expected.add("someoneelse@foo.com");
+		
+		assertEquals(expected, testConfig.getAllowedUsers());
 	}
 
 	@Test
 	public void testGetCustomConfig() {
-		fail("Not yet implemented");
+		assertEquals("test", testConfig.getCustomConfig().getString("attr1"));
 	}
-
 }

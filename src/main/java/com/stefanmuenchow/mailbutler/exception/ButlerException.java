@@ -14,7 +14,10 @@ public class ButlerException extends RuntimeException {
 		MESSAGE_DELETION_FAILURE, 
 		CLOSE_FAILURE, 
 		CONNECTION_FAILURE, 
-		GET_SENDER_FAILURE
+		GET_SENDER_FAILURE,
+		JAR_PATH_INVALID, 
+		CLASS_NOT_FOUND, 
+		INSTANTIATION_FAILURE
 	}
 	
 	public ButlerException() {

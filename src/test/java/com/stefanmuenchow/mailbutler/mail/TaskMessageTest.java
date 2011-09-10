@@ -10,15 +10,13 @@ import javax.mail.Message;
 import javax.mail.internet.InternetAddress;
 
 import org.easymock.EasyMock;
-import org.junit.Before;
 import org.junit.Test;
 
 public class TaskMessageTest {
 	private Message mockMessage;
 	private TaskMessage taskMessage;
 	
-	@Before
-	public void setUp() throws Exception {
+	public TaskMessageTest() throws Exception {
 		mockMessage = EasyMock.createMock(Message.class);
 		EasyMock.expect(mockMessage.getFrom()).andReturn(new Address[] { new InternetAddress("someone@foo.com") });
 		EasyMock.expect(mockMessage.getSubject()).andReturn("butler action");

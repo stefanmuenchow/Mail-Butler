@@ -17,6 +17,10 @@ public class PluginConfiguration {
 	private List<String> allowedUsers;
 	private Configuration customConfig;
 
+	public PluginConfiguration(String filePath) {
+		this(new File(filePath));
+	}
+	
 	@SuppressWarnings("unchecked")
 	public PluginConfiguration(File file) {
 		XMLConfiguration xmlConfig;
@@ -26,7 +30,7 @@ public class PluginConfiguration {
 			xmlConfig.setThrowExceptionOnMissing(true);
 			setPluginName(xmlConfig.getString("name"));
 			setJarFileName(xmlConfig.getString("jarFile"));
-			setClassName(xmlConfig.getString("pluginClass"));
+			setClassName(xmlConfig.getString("class"));
 			setAllowedUsers((List<String>) xmlConfig.getList("security.allowedUsers"));
 			setCustomConfig(xmlConfig.configurationAt("customConfig"));
 		} catch (ConfigurationException e) {

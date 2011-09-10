@@ -3,7 +3,6 @@ package com.stefanmuenchow.mailbutler.util;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.easymock.EasyMock;
-import org.junit.Before;
 import org.junit.Test;
 
 import com.stefanmuenchow.mailbutler.exception.ButlerException;
@@ -13,8 +12,7 @@ public class LogUtilTest {
 	private ButlerException butlerException;
 	private Logger loggerMock;
 	
-	@Before
-	public void setUp() throws Exception {
+	public LogUtilTest() {
 		butlerException = new ButlerException(ErrorCode.CLOSE_FAILURE, "This is some text.");
 		loggerMock = EasyMock.createMock(Logger.class);
 		LogUtil.setLogger(loggerMock);

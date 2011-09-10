@@ -8,26 +8,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.stefanmuenchow.mailbutler.exception.ButlerException;
+import com.stefanmuenchow.mailbutler.exception.ButlerException.ErrorCode;
 import com.stefanmuenchow.mailbutler.mail.TaskMessage;
+import com.stefanmuenchow.mailbutler.util.LogUtil;
 
 
 
 public class PluginRepository {
 	private boolean initiated;
+	private String pluginDir;
 	private Map<String, Plugin> plugins;
 	private Map<String, PluginConfiguration> configs;
 	
-	public PluginRepository() {
+	public PluginRepository(String pluginDir) {
+		this.pluginDir = pluginDir;
 		plugins = new HashMap<String, Plugin>();
 		configs = new HashMap<String, PluginConfiguration>();
 		initiated = false;
-		
-//		File file  = new File("c:\\myjar.jar");
-//		 URL url = file.toURL();  
-//		 URL[] urls = new URL[]{url};
-//		 ClassLoader cl = new URLClassLoader(urls);
-//
-//		 Class cls = cl.loadClass("com.mypackage.myclass");
 	}
 
 	public synchronized Plugin getPlugin(TaskMessage taskMessage) {
@@ -42,19 +40,44 @@ public class PluginRepository {
 		return plugins.get(taskMessage.getType());
 	}
 
-	public synchronized void loadPlugins(List<PluginConfiguration> pluginConfigs) throws MalformedURLException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-		ClassLoader loader;
-		Class<?> newClass;
-		
+	public synchronized void loadPlugins(List<PluginConfiguration> pluginConfigs) {
 		for(PluginConfiguration c : pluginConfigs) {
-			configs.put(c.getPluginName(), c);
-			loader = new URLClassLoader(new URL[] {new File(c.getJarFileName()).toURI().toURL()});
-			newClass = loader.loadClass(c.getClassName());
-			Plugin newPlugin = (Plugin) newClass.newInstance();
-			plugins.put(c.getPluginName(), newPlugin);
+			try {
+				initiatePluginFromConfig(c);
+			} catch (ButlerException e) {
+				LogUtil.logException(e);
+			}
 		}
 		
 		setInitiated(true);
+	}
+
+	private synchronized void initiatePluginFromConfig(PluginConfiguration c) {
+		String jarPath = pluginDir + "/" + c.getJarFileName();
+		
+		try {
+			tryInitPlugin(c, jarPath);
+		} catch (MalformedURLException e) {
+			throw new ButlerException(ErrorCode.JAR_PATH_INVALID, jarPath);
+		} catch (ClassNotFoundException e) {
+			throw new ButlerException(ErrorCode.CLASS_NOT_FOUND, c.getClassName());
+		} catch (InstantiationException e) {
+			throw new ButlerException(ErrorCode.INSTANTIATION_FAILURE);
+		} catch (IllegalAccessException e) {
+			throw new ButlerException(ErrorCode.INSTANTIATION_FAILURE);
+		}
+	}
+
+	private synchronized void tryInitPlugin(PluginConfiguration c, String jarPath)
+			throws MalformedURLException, ClassNotFoundException,
+			InstantiationException, IllegalAccessException {
+		
+		ClassLoader loader = new URLClassLoader(new URL[] { new File(jarPath).toURI().toURL() });
+		Class<?> newClass = loader.loadClass(c.getClassName());
+		Plugin newPlugin = (Plugin) newClass.newInstance();
+		
+		configs.put(c.getPluginName(), c);
+		plugins.put(c.getPluginName(), newPlugin);
 	}
 
 	private synchronized boolean isInitiated() {

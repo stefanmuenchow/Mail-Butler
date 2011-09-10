@@ -4,18 +4,16 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Properties;
 
-import org.junit.Before;
 import org.junit.Test;
 
 public class ButlerConfigurationTest {
-	private String testConfigPath = "src/test/java/com/stefanmuenchow/mailbutler/test_butler.xml";
+	private String testConfigPath = "src/test/java/com/stefanmuenchow/mailbutler/testButler.xml";
 	ButlerConfiguration testConfig;
 	
-	@Before
-	public void setUp() {
+	public ButlerConfigurationTest() {
 		testConfig = new ButlerConfiguration(testConfigPath);
 	}
-
+	
 	@Test
 	public void testGetHost() {
 		assertEquals("pop3.test.com", testConfig.getHost());

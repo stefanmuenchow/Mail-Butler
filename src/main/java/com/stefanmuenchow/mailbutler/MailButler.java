@@ -32,7 +32,7 @@ public class MailButler {
 
 	private static void configureAndStartMailDaemon(String configFileName) {
 		ButlerConfiguration butlerConfig = new ButlerConfiguration(configFileName);
-		PluginRepository pluginRepository = new PluginRepository();
+		PluginRepository pluginRepository = new PluginRepository(butlerConfig.getPluginPath());
 		PluginScanner pluginScanner = new PluginScanner(pluginRepository, butlerConfig);
 		MailDaemon mailDaemon = new MailDaemon(butlerConfig, pluginRepository);
 		
