@@ -1,7 +1,6 @@
 package com.stefanmuenchow.mailbutler.plugin;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -48,18 +47,26 @@ public class PluginScanner implements Runnable {
 		List<File> result = new LinkedList<File>();
 		
 		for(File f : children) {
-			if (f.isFile() && f.getName().endsWith(".xml")) {
-				result.add(f);
-			} else {
-				result.addAll(findConfigFiles(f));
-			}
+			addXmlFilesRecursively(result, f);
 		}
 		
 		return result;
 	}
+
+	private void addXmlFilesRecursively(List<File> result, File f) {
+		if (isXmlFile(f)) {
+			result.add(f);
+		} else if (f.isDirectory()) {
+			result.addAll(findConfigFiles(f));
+		}
+	}
 	
+	private boolean isXmlFile(File f) {
+		return f.isFile() && f.getName().endsWith(".xml");
+	}
+
 	private List<PluginConfiguration> createPluginConfigs(List<File> configFiles) {
-		List<PluginConfiguration> configs = new ArrayList<PluginConfiguration>(configFiles.size());
+		List<PluginConfiguration> configs = new LinkedList<PluginConfiguration>();
 		
 		for(File f : configFiles) {
 			configs.add(new PluginConfiguration(f));
