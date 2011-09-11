@@ -53,12 +53,10 @@ public class PluginRepository {
 	}
 
 	private synchronized void initiatePluginFromConfig(PluginConfiguration c) {
-		String jarPath = pluginDir + "/" + c.getJarFileName();
-		
 		try {
-			tryInitPlugin(c, jarPath);
+			tryInitPlugin(c);
 		} catch (MalformedURLException e) {
-			throw new ButlerException(ErrorCode.JAR_PATH_INVALID, jarPath);
+			throw new ButlerException(ErrorCode.JAR_NOT_FOUND, c.getJarFileName());
 		} catch (ClassNotFoundException e) {
 			throw new ButlerException(ErrorCode.CLASS_NOT_FOUND, c.getClassName());
 		} catch (InstantiationException e) {
@@ -68,10 +66,11 @@ public class PluginRepository {
 		}
 	}
 
-	private synchronized void tryInitPlugin(PluginConfiguration c, String jarPath)
+	private synchronized void tryInitPlugin(PluginConfiguration c)
 			throws MalformedURLException, ClassNotFoundException,
 			InstantiationException, IllegalAccessException {
 		
+		String jarPath = pluginDir + File.separator + c.getJarFileName(); 
 		ClassLoader loader = new URLClassLoader(new URL[] { new File(jarPath).toURI().toURL() });
 		Class<?> newClass = loader.loadClass(c.getClassName());
 		Plugin newPlugin = (Plugin) newClass.newInstance();

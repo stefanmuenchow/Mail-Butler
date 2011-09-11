@@ -15,7 +15,7 @@ public class ButlerException extends RuntimeException {
 		CLOSE_FAILURE, 
 		CONNECTION_FAILURE, 
 		GET_SENDER_FAILURE,
-		JAR_PATH_INVALID, 
+		JAR_NOT_FOUND, 
 		CLASS_NOT_FOUND, 
 		INSTANTIATION_FAILURE
 	}

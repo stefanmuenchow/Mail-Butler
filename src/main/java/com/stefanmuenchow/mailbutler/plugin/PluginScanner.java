@@ -8,11 +8,11 @@ import com.stefanmuenchow.mailbutler.mail.ButlerConfiguration;
 
 public class PluginScanner implements Runnable {
 	private PluginRepository pluginRepo;
-	private ButlerConfiguration daemonConfig;
+	private ButlerConfiguration butlerConfig;
 
-	public PluginScanner(PluginRepository pluginRepo, ButlerConfiguration daemonConfig) {
+	public PluginScanner(PluginRepository pluginRepo, ButlerConfiguration butlerConfig) {
 		this.pluginRepo = pluginRepo;
-		this.daemonConfig = daemonConfig;
+		this.butlerConfig = butlerConfig;
 	}
 
 	@Override
@@ -29,20 +29,20 @@ public class PluginScanner implements Runnable {
 
 	private void sleep() {
 		try {
-			Thread.sleep(daemonConfig.getPluginScanCycleInMs());
+			Thread.sleep(butlerConfig.getPluginScanCycleInMs());
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
 	}
 
 	private void findAndLoadConfigs() {
-		File pluginPath = new File(daemonConfig.getPluginPath());
+		File pluginPath = new File(butlerConfig.getPluginPath());
 		List<File> configFiles = findConfigFiles(pluginPath);
 		List<PluginConfiguration> pluginConfigs = createPluginConfigs(configFiles);
 		pluginRepo.loadPlugins(pluginConfigs);
 	}
 
-	private List<File> findConfigFiles(File pluginDir) {
+	List<File> findConfigFiles(File pluginDir) {
 		File[] children = pluginDir.listFiles();
 		List<File> result = new LinkedList<File>();
 		
@@ -61,7 +61,7 @@ public class PluginScanner implements Runnable {
 		}
 	}
 	
-	private boolean isXmlFile(File f) {
+	boolean isXmlFile(File f) {
 		return f.isFile() && f.getName().endsWith(".xml");
 	}
 

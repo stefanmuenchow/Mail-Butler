@@ -77,5 +77,36 @@ public class PluginConfiguration {
 	private void setCustomConfig(Configuration customConfig) {
 		this.customConfig = customConfig;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		
+        result = prime * result + ((className == null) ? 0 : className.hashCode());
+        result = prime * result + ((jarFileName == null) ? 0 : jarFileName.hashCode());
+        result = prime * result + ((pluginName == null) ? 0 : pluginName.hashCode());
+        return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		
+		if (obj == null || getClass() != obj.getClass()) {
+			return false;
+		}
+		
+		PluginConfiguration other = (PluginConfiguration) obj;
+		if (className.equals(other.className)
+		    && jarFileName.equals(other.jarFileName)
+		    && pluginName.equals(other.pluginName)) {
+			return true;
+		}
+
+		return false;
+	}
 	
 }
