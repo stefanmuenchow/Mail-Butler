@@ -7,7 +7,7 @@ import java.util.Properties;
 import org.junit.Test;
 
 public class ButlerConfigurationTest {
-	private String testConfigPath = "src/test/java/com/stefanmuenchow/mailbutler/testButler.xml";
+	private String testConfigPath = "src/test/resources/testButler.xml";
 	ButlerConfiguration testConfig;
 	
 	public ButlerConfigurationTest() {

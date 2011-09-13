@@ -79,7 +79,7 @@ public class PluginRepository {
 		plugins.put(c.getPluginName(), newPlugin);
 	}
 
-	private synchronized boolean isInitiated() {
+	synchronized boolean isInitiated() {
 		return initiated;
 	}
 

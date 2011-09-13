@@ -15,7 +15,6 @@ public class PluginScanner implements Runnable {
 		this.butlerConfig = butlerConfig;
 	}
 
-	@Override
 	public void run() {
 		while(isRunning()) {
 			findAndLoadConfigs();

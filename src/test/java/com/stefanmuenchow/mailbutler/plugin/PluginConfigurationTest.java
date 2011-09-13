@@ -8,7 +8,7 @@ import java.util.List;
 import org.junit.Test;
 
 public class PluginConfigurationTest {
-	private String testConfigPath = "src/test/java/com/stefanmuenchow/mailbutler/plugin/testPlugin.xml";
+	private String testConfigPath = "src/test/resources/plugins/testPlugin.xml";
 	PluginConfiguration testConfig;
 	
 	public PluginConfigurationTest() {
