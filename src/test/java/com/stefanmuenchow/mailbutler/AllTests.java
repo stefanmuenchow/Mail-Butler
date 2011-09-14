@@ -8,6 +8,8 @@ import com.stefanmuenchow.mailbutler.exception.ButlerExceptionTest;
 import com.stefanmuenchow.mailbutler.mail.ButlerConfigurationTest;
 import com.stefanmuenchow.mailbutler.mail.TaskMessageTest;
 import com.stefanmuenchow.mailbutler.plugin.PluginConfigurationTest;
+import com.stefanmuenchow.mailbutler.plugin.PluginRepositoryTest;
+import com.stefanmuenchow.mailbutler.plugin.PluginScannerTest;
 import com.stefanmuenchow.mailbutler.util.LogUtilTest;
 
 @RunWith(Suite.class)
@@ -15,6 +17,8 @@ import com.stefanmuenchow.mailbutler.util.LogUtilTest;
 			   ButlerConfigurationTest.class,
 			   TaskMessageTest.class,
 			   PluginConfigurationTest.class,
+			   PluginRepositoryTest.class,
+			   PluginScannerTest.class,
 			   LogUtilTest.class})
 public class AllTests {
 	

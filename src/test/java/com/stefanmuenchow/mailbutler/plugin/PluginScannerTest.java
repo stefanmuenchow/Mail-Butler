@@ -14,7 +14,7 @@ import org.junit.Test;
 import com.stefanmuenchow.mailbutler.mail.ButlerConfiguration;
 
 public class PluginScannerTest {
-	private static final String pluginPath = "src/test/java/com/stefanmuenchow/mailbutler/plugin";
+	private static final String pluginPath = "src/test/resources/plugins";
 	private static final String pluginConfigPath = pluginPath + File.separator + "testPlugin.xml";
 	private PluginScanner pluginScanner;
 	private PluginRepository pluginRepoMock;
@@ -40,7 +40,7 @@ public class PluginScannerTest {
 		pluginScannerThread.start();
 		
 		try {
-			Thread.sleep(1000);
+			Thread.sleep(200);
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}

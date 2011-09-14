@@ -17,7 +17,7 @@ public class PluginConfigurationTest {
 	
 	@Test
 	public void testGetPluginName() {
-		assertEquals("TestPlugin", testConfig.getPluginName());
+		assertEquals("test", testConfig.getPluginName());
 	}
 
 	@Test
@@ -27,7 +27,7 @@ public class PluginConfigurationTest {
 
 	@Test
 	public void testGetClassName() {
-		assertEquals("com.stefanmuenchow.mailbutler.TestPlugin", testConfig.getClassName());
+		assertEquals("com.stefanmuenchow.mailbutler.test.TestPlugin", testConfig.getClassName());
 	}
 
 	@Test

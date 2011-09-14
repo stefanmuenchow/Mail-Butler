@@ -1,9 +1,9 @@
 package com.stefanmuenchow.mailbutler.plugin;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.io.File;
-import java.lang.Thread.State;
 import java.util.Arrays;
 
 import org.easymock.EasyMock;
@@ -13,58 +13,43 @@ import org.junit.Test;
 import com.stefanmuenchow.mailbutler.mail.TaskMessage;
 
 public class PluginRepositoryTest {
-    private final String pluginDir = "";
-    private final PluginRepository pluginRepo;
+    private final String pluginDir = "src/test/resources/plugins";
+    private final String pluginFile = "testPlugin.xml";
+    private PluginRepository pluginRepo;
     private TaskMessage taskMsgMock;
-    
-    public PluginRepositoryTest() {
-        pluginRepo = new PluginRepository(pluginDir);
-    }
     
     @Before
     public void setUp() throws InterruptedException {
+        pluginRepo = new PluginRepository(pluginDir);
         taskMsgMock = EasyMock.createMock(TaskMessage.class);
+        EasyMock.expect(taskMsgMock.getType()).andReturn("test");
         EasyMock.replay(taskMsgMock);
     }
+    
+    @Test
+    public void testAddPlugin() {
+        PluginConfiguration pluginConfigMock = EasyMock.createMock(PluginConfiguration.class);
+        EasyMock.expect(pluginConfigMock.getPluginName()).andReturn("test");
+        Plugin pluginMock = EasyMock.createMock(Plugin.class);
+        EasyMock.replay(pluginConfigMock);
+        EasyMock.replay(pluginMock);
+        
+        pluginRepo.addPlugin(pluginConfigMock, pluginMock);
+        assertNotNull(pluginRepo.getPlugin(taskMsgMock));
+        EasyMock.verify(pluginConfigMock);
+    }
 
     @Test
-    public void testGetPluginBlock() throws InterruptedException {
-        Thread thread = startGetPluginThread();
-        sleep();
-        
-        assertEquals(State.WAITING, thread.getState());
-        
-        interruptGetPluginThread(thread);
+    public void testGetPluginNull() {
+        assertNull(pluginRepo.getPlugin(taskMsgMock));
+        EasyMock.verify(taskMsgMock);
     }
-
-    private void interruptGetPluginThread(Thread thread) throws InterruptedException {
-        thread.interrupt();
-        thread.join();
-    }
-
-    private void sleep() {
-        try {
-            Thread.sleep(200);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-    }
-
-    private Thread startGetPluginThread() {
-        Runnable runnable = new Runnable() {
-            public void run() {
-                pluginRepo.getPlugin(taskMsgMock);
-            }
-        };
-        
-        Thread thread = new Thread(runnable);
-        thread.start();
-        return thread;
-    }
-
+    
     @Test
     public void testLoadPlugins() {
-        PluginConfiguration conf = new PluginConfiguration(pluginDir + File.separator + "");
+        PluginConfiguration conf = new PluginConfiguration(pluginDir + File.separator + pluginFile);
         pluginRepo.loadPlugins(Arrays.asList(new PluginConfiguration[] { conf }));
+        
+        assertNotNull(pluginRepo.getPlugin(taskMsgMock));
     }
 }

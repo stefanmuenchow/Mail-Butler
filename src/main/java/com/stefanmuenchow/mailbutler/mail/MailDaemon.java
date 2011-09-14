@@ -107,7 +107,10 @@ public class MailDaemon implements Runnable {
 
 	private void handleTaskMessage(TaskMessage taskMessage) {
 		Plugin plugin = pluginRepository.getPlugin(taskMessage);
-		plugin.process(taskMessage);
+		
+		if (plugin != null) {
+		    plugin.process(taskMessage);
+		}
 	}
 
 	private void sleep() {
