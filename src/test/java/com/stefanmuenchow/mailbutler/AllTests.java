@@ -6,6 +6,8 @@ import org.junit.runners.Suite.SuiteClasses;
 
 import com.stefanmuenchow.mailbutler.exception.ButlerExceptionTest;
 import com.stefanmuenchow.mailbutler.mail.ButlerConfigurationTest;
+import com.stefanmuenchow.mailbutler.mail.MailDaemonTest;
+import com.stefanmuenchow.mailbutler.mail.MailSessionTest;
 import com.stefanmuenchow.mailbutler.mail.TaskMessageTest;
 import com.stefanmuenchow.mailbutler.plugin.PluginConfigurationTest;
 import com.stefanmuenchow.mailbutler.plugin.PluginRepositoryTest;
@@ -15,6 +17,8 @@ import com.stefanmuenchow.mailbutler.util.LogUtilTest;
 @RunWith(Suite.class)
 @SuiteClasses({ButlerExceptionTest.class, 
 			   ButlerConfigurationTest.class,
+			   MailDaemonTest.class,
+			   MailSessionTest.class,
 			   TaskMessageTest.class,
 			   PluginConfigurationTest.class,
 			   PluginRepositoryTest.class,

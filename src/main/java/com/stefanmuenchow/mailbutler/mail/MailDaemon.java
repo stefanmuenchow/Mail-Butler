@@ -15,7 +15,6 @@ import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.NoSuchProviderException;
-import javax.mail.Session;
 import javax.mail.Store;
 
 import com.stefanmuenchow.mailbutler.exception.ButlerException;
@@ -27,14 +26,14 @@ import com.stefanmuenchow.mailbutler.util.LogUtil;
 public class MailDaemon implements Runnable {
 	private ButlerConfiguration butlerConfig;
 	private PluginRepository pluginRepository;
-	private Session	session;
+	private MailSession	session = null;
 	private Store store = null;
 	private Folder folder = null;
 	
-	public MailDaemon(ButlerConfiguration config, PluginRepository pluginRepository) { 
+	public MailDaemon(ButlerConfiguration config, PluginRepository pluginRepository, MailSession session) { 
 		this.butlerConfig = config;
 		this.pluginRepository = pluginRepository;
-		this.session = Session.getDefaultInstance(config.getMailSessionProperties());
+		this.session = session;
 	}
 	
 	public void run() {

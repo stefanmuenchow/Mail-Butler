@@ -128,4 +128,19 @@ public class TaskMessage {
 			throw new ButlerException(ErrorCode.MESSAGE_DELETION_FAILURE);
 		}
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+	    if (obj != null && obj instanceof TaskMessage) {
+	        TaskMessage other = (TaskMessage) obj;
+	        return message.equals(other.getMessage());
+	    }
+	    
+	    return false;
+	}
+	
+	@Override
+	public int hashCode() {
+	    return message.hashCode();
+	}
 }

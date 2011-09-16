@@ -9,7 +9,7 @@ import org.junit.Test;
 
 public class PluginConfigurationTest {
 	private String testConfigPath = "src/test/resources/plugins/testPlugin.xml";
-	PluginConfiguration testConfig;
+	private PluginConfiguration testConfig;
 	
 	public PluginConfigurationTest() {
 		testConfig = new PluginConfiguration(testConfigPath);
@@ -42,5 +42,11 @@ public class PluginConfigurationTest {
 	@Test
 	public void testGetCustomConfig() {
 		assertEquals("test", testConfig.getCustomConfig().getString("attr1"));
+	}
+	
+	@Test
+	public void testHashCode() {
+	    PluginConfiguration testConfig2 = new PluginConfiguration(testConfigPath);
+	    assertEquals(testConfig.hashCode(), testConfig2.hashCode());
 	}
 }
