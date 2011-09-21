@@ -4,9 +4,9 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.Map;
 
 import com.stefanmuenchow.mailbutler.exception.ButlerException;
 import com.stefanmuenchow.mailbutler.exception.ButlerException.ErrorCode;
@@ -17,20 +17,36 @@ import com.stefanmuenchow.mailbutler.util.LogUtil;
 
 public class PluginRepository {
 	private String pluginDir;
-	private ConcurrentMap<String, Plugin> plugins;
-	private ConcurrentMap<String, PluginConfiguration> configs;
+	private Map<String, Plugin> plugins;
+	private Map<String, PluginConfiguration> configs;
 	
 	public PluginRepository(String pluginDir) {
 		this.pluginDir = pluginDir;
-		plugins = new ConcurrentHashMap<String, Plugin>();
-		configs = new ConcurrentHashMap<String, PluginConfiguration>();
+		plugins = new HashMap<String, Plugin>();
+		configs = new HashMap<String, PluginConfiguration>();
 	}
 
-	public Plugin getPlugin(TaskMessage taskMessage) {
-		return plugins.get(taskMessage.getType());
+	public synchronized Plugin getPlugin(TaskMessage taskMessage) {
+	    String pluginName = taskMessage.getPluginName();
+	    
+	    if(isAllowedUser(pluginName, taskMessage.getFromAddress())) {
+	        return plugins.get(pluginName);
+	    } else {
+	        return null;
+	    }
 	}
 
-	public void loadPlugins(List<PluginConfiguration> pluginConfigs) {
+	private synchronized boolean isAllowedUser(String pluginName, String fromAddress) {
+	    PluginConfiguration pluginConfig = configs.get(pluginName);
+	    
+	    if(pluginConfig != null) {
+	        return pluginConfig.getAllowedUsers().contains(fromAddress);
+	    } else {
+	        return false;
+	    }
+    }
+
+    public void loadPlugins(List<PluginConfiguration> pluginConfigs) {
 		for(PluginConfiguration c : pluginConfigs) {
 			try {
 				initiatePluginFromConfig(c);
@@ -66,7 +82,7 @@ public class PluginRepository {
 		addPlugin(c, newPlugin);
 	}
 
-    void addPlugin(PluginConfiguration config, Plugin plugin) {
+    synchronized void addPlugin(PluginConfiguration config, Plugin plugin) {
         String pluginName = config.getPluginName();
         
         configs.put(pluginName, config);

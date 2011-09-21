@@ -32,7 +32,7 @@ public class TaskMessageTest {
 	
 	@Test
 	public void testGetType() {
-		assertEquals("action", taskMessage.getType());
+		assertEquals("action", taskMessage.getPluginName());
 	}
 
 	@Test

@@ -93,7 +93,7 @@ public class TaskMessage {
 		this.message = message;
 	}
 
-	public String getType() {
+	public String getPluginName() {
 		return type;
 	}
 

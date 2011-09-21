@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNull;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.List;
 
 import org.easymock.EasyMock;
 import org.junit.Before;
@@ -22,7 +23,8 @@ public class PluginRepositoryTest {
     public void setUp() throws InterruptedException {
         pluginRepo = new PluginRepository(pluginDir);
         taskMsgMock = EasyMock.createMock(TaskMessage.class);
-        EasyMock.expect(taskMsgMock.getType()).andReturn("test");
+        EasyMock.expect(taskMsgMock.getPluginName()).andReturn("test");
+        EasyMock.expect(taskMsgMock.getFromAddress()).andReturn("someone@foo.com");
         EasyMock.replay(taskMsgMock);
     }
     
@@ -30,6 +32,8 @@ public class PluginRepositoryTest {
     public void testAddPlugin() {
         PluginConfiguration pluginConfigMock = EasyMock.createMock(PluginConfiguration.class);
         EasyMock.expect(pluginConfigMock.getPluginName()).andReturn("test");
+        List<String> allowed = Arrays.asList(new String[] { "someone@foo.com" });
+        EasyMock.expect(pluginConfigMock.getAllowedUsers()).andReturn(allowed);
         Plugin pluginMock = EasyMock.createMock(Plugin.class);
         EasyMock.replay(pluginConfigMock);
         EasyMock.replay(pluginMock);
@@ -40,7 +44,21 @@ public class PluginRepositoryTest {
     }
 
     @Test
-    public void testGetPluginNull() {
+    public void testGetPluginNotAllowed() {
+        PluginConfiguration pluginConfigMock = EasyMock.createMock(PluginConfiguration.class);
+        EasyMock.expect(pluginConfigMock.getPluginName()).andReturn("test");
+        List<String> allowed = Arrays.asList(new String[] { "someone@bar.com" });
+        EasyMock.expect(pluginConfigMock.getAllowedUsers()).andReturn(allowed);
+        Plugin pluginMock = EasyMock.createMock(Plugin.class);
+        EasyMock.replay(pluginConfigMock);
+        EasyMock.replay(pluginMock);
+        
+        pluginRepo.addPlugin(pluginConfigMock, pluginMock);
+        assertNull(pluginRepo.getPlugin(taskMsgMock));
+    }
+    
+    @Test
+    public void testGetPluginNotAvailable() {
         assertNull(pluginRepo.getPlugin(taskMsgMock));
         EasyMock.verify(taskMsgMock);
     }
