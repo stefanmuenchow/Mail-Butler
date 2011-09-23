@@ -34,7 +34,7 @@ public class PluginConfiguration {
 			setAllowedUsers((List<String>) xmlConfig.getList("security.allowedUsers"));
 			setCustomConfig(xmlConfig.configurationAt("customConfig"));
 		} catch (ConfigurationException e) {
-			throw new ButlerException(ErrorCode.CONFIG_READ_FAILURE, file.getName());
+			throw new ButlerException(ErrorCode.CONFIG_READ_FAILURE, e);
 		}
 	}
 

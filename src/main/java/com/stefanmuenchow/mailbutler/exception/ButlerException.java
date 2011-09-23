@@ -17,23 +17,26 @@ public class ButlerException extends RuntimeException {
 		GET_SENDER_FAILURE,
 		JAR_NOT_FOUND, 
 		CLASS_NOT_FOUND, 
-		INSTANTIATION_FAILURE
+		INSTANTIATION_FAILURE, 
+		INVALID_ADDRESS, 
+		MESSAGE_SEND_FAILURE, 
+		SENDER_NOT_INITIATED
 	}
 	
 	public ButlerException() {
-		this(ErrorCode.UNDEFINED, "");
+		this(ErrorCode.UNDEFINED);
 	}
 	
-	public ButlerException(String message) {
-		this(ErrorCode.UNDEFINED, message);
+	public ButlerException(Throwable t) {
+		this(ErrorCode.UNDEFINED, t);
 	}
 	
 	public ButlerException(ErrorCode errorCode) {
-		this(errorCode, "");
+	    setErrorCode(errorCode);
 	}
 	
-	public ButlerException(ErrorCode errorCode, String additionalText) {
-		super(additionalText);
+	public ButlerException(ErrorCode errorCode, Throwable t) {
+		super(t);
 		setErrorCode(errorCode);
 	}
 	
@@ -50,8 +53,8 @@ public class ButlerException extends RuntimeException {
 		case CLOSE_FAILURE:
 			return "CLOSE_FAILURE";
 		case CONFIG_READ_FAILURE:
-			String additional = getMessage().equals("") ? "" : (": " + getMessage());
-			return "CONFIG_READ_FAILURE" + additional;
+			return "CONFIG_READ_FAILURE" 
+			       + (getCause() != null ? ": " + getCause().getMessage() : "");
 		case CONNECTION_FAILURE:
 			return "CONNECTION_FAILURE";
 		case GET_SENDER_FAILURE:
@@ -66,7 +69,7 @@ public class ButlerException extends RuntimeException {
 			return "MESSAGE_READ_FAILURE";
 		case UNDEFINED:
 		default:
-			return super.getMessage();
+			return (getCause() != null ? getCause().getMessage() : "");
 		}
 	}
 }

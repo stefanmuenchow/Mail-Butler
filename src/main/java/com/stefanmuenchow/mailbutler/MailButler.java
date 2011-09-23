@@ -14,6 +14,7 @@ package com.stefanmuenchow.mailbutler;
 import com.stefanmuenchow.mailbutler.exception.ButlerException;
 import com.stefanmuenchow.mailbutler.mail.ButlerConfiguration;
 import com.stefanmuenchow.mailbutler.mail.MailDaemon;
+import com.stefanmuenchow.mailbutler.mail.MailSender;
 import com.stefanmuenchow.mailbutler.mail.MailSession;
 import com.stefanmuenchow.mailbutler.plugin.PluginRepository;
 import com.stefanmuenchow.mailbutler.plugin.PluginScanner;
@@ -37,6 +38,8 @@ public class MailButler {
 		PluginScanner pluginScanner = new PluginScanner(pluginRepository, butlerConfig);
 		MailSession mailSession = new MailSession(butlerConfig.getMailSessionProperties());
 		MailDaemon mailDaemon = new MailDaemon(butlerConfig, pluginRepository, mailSession);
+		MailSender mailSender = new MailSender(mailSession);
+		MailSender.setDefaultInstance(mailSender);
 		
 		final Thread pluginScannerThread = new Thread(pluginScanner);
 		final Thread mailDaemonThread = new Thread(mailDaemon);

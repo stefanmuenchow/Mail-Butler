@@ -5,8 +5,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+
+import org.apache.commons.configuration.Configuration;
 
 import com.stefanmuenchow.mailbutler.exception.ButlerException;
 import com.stefanmuenchow.mailbutler.exception.ButlerException.ErrorCode;
@@ -60,13 +64,13 @@ public class PluginRepository {
 		try {
 			tryInitPlugin(c);
 		} catch (MalformedURLException e) {
-			throw new ButlerException(ErrorCode.JAR_NOT_FOUND, c.getJarFileName());
+			throw new ButlerException(ErrorCode.JAR_NOT_FOUND, e);
 		} catch (ClassNotFoundException e) {
-			throw new ButlerException(ErrorCode.CLASS_NOT_FOUND, c.getClassName());
+			throw new ButlerException(ErrorCode.CLASS_NOT_FOUND, e);
 		} catch (InstantiationException e) {
-			throw new ButlerException(ErrorCode.INSTANTIATION_FAILURE);
+			throw new ButlerException(ErrorCode.INSTANTIATION_FAILURE, e);
 		} catch (IllegalAccessException e) {
-			throw new ButlerException(ErrorCode.INSTANTIATION_FAILURE);
+			throw new ButlerException(ErrorCode.INSTANTIATION_FAILURE, e);
 		}
 	}
 
@@ -78,9 +82,25 @@ public class PluginRepository {
 		ClassLoader loader = new URLClassLoader(new URL[] { new File(jarPath).toURI().toURL() });
 		Class<?> newClass = loader.loadClass(c.getClassName());
 		Plugin newPlugin = (Plugin) newClass.newInstance();
+		newPlugin.setConfig(getCustomProperties(c));
 		
 		addPlugin(c, newPlugin);
 	}
+
+    @SuppressWarnings("unchecked")
+    private Properties getCustomProperties(PluginConfiguration c) {
+        Configuration customConfig = c.getCustomConfig();
+        Properties properties = new Properties();
+        Iterator<String> it = customConfig.getKeys();
+        
+        while (it.hasNext()) {
+            String key = it.next();
+            String value = customConfig.getString(key);
+            properties.setProperty(key, value);
+        }
+        
+        return properties;
+    }
 
     synchronized void addPlugin(PluginConfiguration config, Plugin plugin) {
         String pluginName = config.getPluginName();

@@ -65,12 +65,9 @@ public class MailDaemon implements Runnable {
 			store = session.getStore(butlerConfig.getProtocol());
 			store.connect(butlerConfig.getHost(), butlerConfig.getUser(), butlerConfig.getPassword());
 		} catch (NoSuchProviderException e) {
-			throw new ButlerException(ErrorCode.CONNECTION_FAILURE,
-					butlerConfig.getProtocol() + ", " + butlerConfig.getHost());
+			throw new ButlerException(ErrorCode.CONNECTION_FAILURE, e);
 		} catch (MessagingException e) {
-			throw new ButlerException(ErrorCode.CONNECTION_FAILURE,
-					butlerConfig.getProtocol() + ", " + butlerConfig.getHost()
-							+ ", " + butlerConfig.getUser());
+			throw new ButlerException(ErrorCode.CONNECTION_FAILURE, e);
 		}
 	}
 	
@@ -79,7 +76,7 @@ public class MailDaemon implements Runnable {
 			folder = store.getFolder(butlerConfig.getInboxName());
 			folder.open(Folder.READ_WRITE);
 		} catch (MessagingException e) {
-			throw new ButlerException(ErrorCode.CONNECTION_FAILURE, butlerConfig.getInboxName());
+			throw new ButlerException(ErrorCode.CONNECTION_FAILURE, e);
 		}
 	}
 	
@@ -125,7 +122,7 @@ public class MailDaemon implements Runnable {
 			folder.close(true);
 			store.close();
 		} catch (MessagingException e) {
-			ButlerException de = new ButlerException(ErrorCode.CLOSE_FAILURE, e.getMessage());
+			ButlerException de = new ButlerException(ErrorCode.CLOSE_FAILURE, e);
 			LogUtil.logException(de);
 		}
 	}

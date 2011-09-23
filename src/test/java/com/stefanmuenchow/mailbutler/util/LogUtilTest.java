@@ -13,7 +13,7 @@ public class LogUtilTest {
 	private Logger loggerMock;
 	
 	public LogUtilTest() {
-		butlerException = new ButlerException(ErrorCode.CLOSE_FAILURE, "This is some text.");
+		butlerException = new ButlerException(ErrorCode.CLOSE_FAILURE, new Exception("This is some text."));
 		loggerMock = EasyMock.createMock(Logger.class);
 		LogUtil.setLogger(loggerMock);
 	}

@@ -35,7 +35,7 @@ public class ButlerConfiguration {
 			setPluginPath(xmlConfig.getString("plugins.path"));
 			setPluginScanCycleInMs(xmlConfig.getLong("plugins.scanCycle") * 1000);
 		} catch (ConfigurationException e) {
-			throw new ButlerException(ErrorCode.CONFIG_READ_FAILURE, fileName);
+			throw new ButlerException(ErrorCode.CONFIG_READ_FAILURE, e);
 		}
 	}
 

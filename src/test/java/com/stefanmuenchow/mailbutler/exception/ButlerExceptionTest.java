@@ -17,7 +17,7 @@ public class ButlerExceptionTest {
 
 	@Test
 	public void testButlerExceptionString() {
-		ButlerException ex = new ButlerException("Kaboom!");
+		ButlerException ex = new ButlerException(new Exception("Kaboom!"));
 		assertEquals(ErrorCode.UNDEFINED, ex.getErrorCode());
 		assertEquals("Kaboom!", ex.getErrorMessage());
 	}
@@ -31,7 +31,7 @@ public class ButlerExceptionTest {
 
 	@Test
 	public void testButlerExceptionErrorCodeString() {
-		ButlerException ex = new ButlerException(ErrorCode.CONFIG_READ_FAILURE, "config.xml");
+		ButlerException ex = new ButlerException(ErrorCode.CONFIG_READ_FAILURE, new Exception("config.xml"));
 		assertEquals(ErrorCode.CONFIG_READ_FAILURE, ex.getErrorCode());
 		assertEquals("CONFIG_READ_FAILURE: config.xml", ex.getErrorMessage());
 	}
